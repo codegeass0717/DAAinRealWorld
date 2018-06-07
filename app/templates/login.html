@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Login</title>
+	</head>
+	<body>
+    <h1>Login</h1>
+		<p>Basename: {{ bsn }}</p>
+    <p>Challenge: {{ chall }}</p>
+    <p>Send me your signed message</p>
+    <form method="post" enctype="multipart/form-data">
+      <input type="file" name="signed_msg">
+      <input type="submit" value="Send">
+    </form>
+    <p><a href="/">Back</a></p>
+  </body>
+</html>
