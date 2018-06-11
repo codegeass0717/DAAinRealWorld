@@ -16,7 +16,8 @@ os.chdir('../../user/TestData')
 user1.init_memkey1('testKey.pubkey', 'bsn', 'TMPSecret', 'Join')
 
 os.chdir('../../issuer/TestData')
-issuer.generate_tmpmemkey('testKey.prvkey', 'bsn', 'Join', 'member1')
+issuer.load('testKey.prvkey', bsnFile='bsn')
+issuer.generate_tmpmemkey('Join', 'member1')
 
 os.chdir('../../user/TestData')
 user1.init_memkey2('member1.tmpmemkey', 'TMPSecret', 'user1.memkey')
