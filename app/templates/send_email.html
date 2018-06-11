@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Send email</title>
+	</head>
+	<body>
+		<h1>Join Group</h1>
+		<p>{{ msg }}</p>
+		<form method="post" enctype="application/x-www-form-urlencoded">
+			<select name='group'>
+				<option value='NTU'>NTU</option>
+				<option value='NTUCSIE'>NTUCSIE</option>
+			</select>
+      <input type="email" name="email">
+      <input type="submit" value="Send email">
+  	</form>
+  	<p><a href="/">Back</a></p>
+  </body>
+</html>

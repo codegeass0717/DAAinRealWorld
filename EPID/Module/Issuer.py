@@ -6,14 +6,17 @@ class Issuer:
 	def generate_keys(self, filename):
 		KeyGenerator.setup(filename)
 
-	def generate_tmpmemkey(self, prvKey, bsnFile, joinFile, memFile):
-		prvKey = privateKey(prvKey)
+	def load(self, prvKeyFile, bsnFile=None, bsnStr=None):
+		self.prvKey = privateKey(prvKeyFile)
 
-		f = open(bsnFile, "r")
-		bsn = f.readline().strip()
-		f.close()
+		if bsnFile:
+			with open(bsnFile, "r") as f:
+				self.bsn = f.readline().strip()
+		else:
+			self.bsn = bsnStr
 
-		bsnPower = bsnPow( bsn, prvKey.pGroup, prvKey.qGroup)
+	def generate_tmpmemkey(self, joinFile, memFile):
+		bsnPower = bsnPow(self.bsn, self.prvKey.pGroup, self.prvKey.qGroup)
 
 		f = open(joinFile, "r")
 		K = int(f.readline())
@@ -21,7 +24,7 @@ class Issuer:
 		f.close()
 
 		f = open(memFile, "w")
-		(A,e,v) = Issuer_core.createMemKey( K, U, prvKey)
+		(A,e,v) = Issuer_core.createMemKey( K, U, self.prvKey)
 		writeline(f, str(A))
 		writeline(f, str(e))
 		writeline(f, str(v))
