@@ -63,3 +63,8 @@ class Member:
 		C1 = sign1()
 		C1.readfrom(signFile)
 		return C1.verify(self.pubKey, self.bsn, msg)
+
+	def get_pseudonym(self, signFile):
+		C1 = sign1()
+		C1.readfrom(signFile)
+		return C1.K

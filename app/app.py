@@ -1,7 +1,7 @@
 import sys
 sys.path.append('../EPID')
 from Module import *
-from service import *
+from util import *
 import mail
 
 from flask import *
@@ -14,11 +14,29 @@ app = Flask(__name__)
 app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
 
-vaild_groups = [('NTU', 'ntu.edu.tw'), ('NTUCSIE', 'csie.ntu.edu.tw')]
-services = [Service('ntu', 'service/ntu'), Service('ntucsie', 'service/ntucsie')]
-signers  = [Service('ntu_service', 'service/ntu_service', 1), Service('ntucsie_service', 'service/ntucsie_service', 1)]
 TMP_PATH = 'tmp'
 DEBUG = True
+
+issuer = Issuer()
+verifier = Member()
+
+valid_groups = [('NTU', 'ntu.edu.tw'), ('NTUCSIE', 'csie.ntu.edu.tw')]
+groups = [Group('ntu'), Group('ntucsie')]
+services = [Service('aaaa', 0), Service('bbbb', 1)]
+
+def generate_key(gid, join_dst, key_dst):
+	global issuer, groups
+	g = groups[gid]
+	issuer.load(g.prvKeyFile, bsnFile=g.bsnFile)
+	issuer.generate_tmpmemkey(join_dst, key_dst)
+
+def verify_sign(sid, sign_dst, msgStr):
+	global verifier, groups, services
+	s = services[sid]
+	g = groups[s.gid]
+	verifier.load(g.pubKeyFile, None, bsnStr=s.bsn)
+	name = str(verifier.get_pseudonym(sign_dst))
+	return verifier.verify(sign_dst, msgStr=msgStr), name
 
 def random_str(n):
 	sample = string.ascii_letters + string.digits
@@ -27,79 +45,12 @@ def random_str(n):
 def check_uid():
 	if 'uid' not in session:
 		session['uid'] = random_str(16)
+	if 'login' not in session:
+		session['login'] = [False] * len(services)
+	if 'name' not in session:
+		session['name'] = [''] * len(services)
 	# DEBUG
 	print session
-
-@app.route('/')
-def index():
-	check_uid()
-
-	if 'login' in session and session['login']:
-		msg = 'You are logged in'
-	else:
-		msg = 'You are not logged in'
-	return render_template('index.html', msg=msg)
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-	check_uid()
-	if 'g_verify' not in session or not session['g_verify']:
-		return redirect(url_for('index'))
-
-	gid = session['gid']
-	bsn = services[gid].bsnStr
-	if request.method == 'GET':
-		chall = 'CHALL' + random_str(16)
-		session['chall'] = chall
-		return render_template('login.html', bsn=bsn, chall=chall)
-
-	if request.method == 'POST':
-		# TODO: Handle error
-		if 'chall' not in session:
-			return redirect(request.url)
-		if 'signed_msg' not in request.files:
-			return redirect(request.url)
-
-		f = request.files['signed_msg']
-		if not f:
-			return redirect(request.url)
-		sign_dst = os.path.join(TMP_PATH, session['chall'])
-		f.save(sign_dst)
-
-		gid = session['gid']
-		ret = services[gid].verifier.verify(sign_dst, msgStr=session['chall'])
-		if not ret:
-			print ' * Verification failed'
-			return redirect(request.url)
-
-		session['login'] = True
-		print ' * Verification success'
-		return redirect(url_for('index'))
-
-@app.route('/group_verify' , methods=['GET','POST'])
-def group_verify():
-    check_uid()
-    msg1=""
-    if request.method == 'POST':
-        group = request.form['group']
-        if(group=='NTUSERVICE'):
-            gsid = 0
-        elif(group=='NTUCSIESERVICE'):
-            gsid = 1
-        # TODO : Error Handling
-        msg = request.form["msg"] + random_str(16)
-        file_name = 'Groupverify' + session['uid']
-        file_dst = os.path.join(TMP_PATH, file_name)
-        signers[gsid].verifier.sign(file_dst, None ,msg)
-        msg1 = "Signed Message is :" + msg
-    return render_template('group_verify.html',msg1=msg1)
-
-@app.route('/logout')
-def logout():
-	check_uid()
-
-	session['login'] = False
-	return render_template('logout.html')
 
 def check_group(group, email):
 	"""
@@ -108,12 +59,25 @@ def check_group(group, email):
 		-1: group not found
 		-2: incorrect suffix
 	"""
-	for i, (g, suf) in enumerate(vaild_groups):
+	for i, (g, suf) in enumerate(valid_groups):
 		if group == g:
 			if email.endswith(suf):
 				return i
 			return -2
 	return -1
+
+def update(which, sid, value):
+	# Deal with an unknown bug
+	logins = session[which]
+	logins[sid] = value
+	session[which] = logins
+
+@app.route('/')
+def index():
+	check_uid()
+
+	msg = 'hi, there'
+	return render_template('index.html', msg=msg)
 
 @app.route('/send_email', methods=['GET', 'POST'])
 def send_email():
@@ -181,7 +145,7 @@ def join_group():
 
 	msg = ''
 	gid = session['gid']
-	bsn = services[gid].bsnStr
+	bsn = groups[gid].bsnStr
 	if request.method == 'POST':
 		if 'join_req' not in request.files:
 			return redirect(request.url)
@@ -197,35 +161,124 @@ def join_group():
 		# generate temp member private key
 		key_name = 'KEY' + session['uid']
 		key_dst = os.path.join(TMP_PATH, key_name)
-		services[gid].issuer.generate_tmpmemkey(join_dst, key_dst)
+		generate_key(gid, join_dst, key_dst)
 
 	return render_template('join_group.html', msg=msg, bsn=bsn)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	check_uid()
+
+	sid = request.args.get('sid')
+	if sid == None:
+		return redirect(url_for('index'))
+	sid = int(sid)
+	if not 0 <= sid < len(services):
+		return redirect(url_for('index'))
+
+	bsn = services[sid].bsn
+	g_name = groups[services[sid].gid].bsnStr
+	if request.method == 'GET':
+		chall = 'CHALL' + random_str(16)
+		session['chall'] = chall
+		return render_template('login.html', g_name=g_name, bsn=bsn, chall=chall)
+
+	if request.method == 'POST':
+		# TODO: Handle error
+		if 'chall' not in session:
+			return redirect(request.url)
+		if 'signed_msg' not in request.files:
+			return redirect(request.url)
+
+		f = request.files['signed_msg']
+		if not f:
+			return redirect(request.url)
+		sign_dst = os.path.join(TMP_PATH, session['chall'])
+		f.save(sign_dst)
+
+		ret, name = verify_sign(sid, sign_dst, session['chall'])
+		if not ret:
+			print ' * Verification failed'
+			return redirect(request.url)
+
+		update('login', sid, True)
+		update('name', sid, name)
+		print ' * Verification success'
+		return redirect(url_for('serv', sid=sid))
+
+@app.route('/logout')
+def logout():
+	check_uid()
+
+	sid = request.args.get('sid')
+	if sid == None:
+		return redirect(url_for('index'))
+	sid = int(sid)
+	if not 0 <= sid < len(services):
+		return redirect(url_for('index'))
+
+	update('login', sid, False)
+	bsn = services[sid].bsn
+	return render_template('logout.html', bsn=bsn)
 
 @app.route('/download')
 def download():
 	check_uid()
-	#if 'g_verify' not in session or not session['g_verify']:
-    #	return redirect(url_for('index'))
+	if 'g_verify' not in session or not session['g_verify']:
+		return redirect(url_for('index'))
 
+	gid = session['gid']
 	filename = request.args.get('file')
 	if filename == 'gpubkey':
-		gid = session['gid']
-		path = 'service/' + services[gid].name
-		filename = services[gid].name + '.pubkey'
+		path = 'groups/' + groups[gid].name
+		filename = groups[gid].name + '.pubkey'
 		return send_from_directory(path, filename, as_attachment=True, attachment_filename=filename)
 	elif filename == 'tmpmemkey':
 		# Response 404 if not found
 		key_name = 'KEY' + session['uid']
-		return send_from_directory('tmp', key_name, as_attachment=True, attachment_filename='member.tmpmemkey')
-	elif filename == 'group_verify':
-		# Response 404 if not found
-		file_name = 'Groupverify' + session['uid']
-		return send_from_directory('tmp', file_name, as_attachment=True, attachment_filename='Signature')
+		filename = groups[gid].name + '.tmpmemkey'
+		return send_from_directory('tmp', key_name, as_attachment=True, attachment_filename=filename)
 	return redirect(url_for('index'))
 
 @app.route('/test')
 def test():
 	return render_template('test.html')
+
+@app.route('/entry')
+def entry():
+	return render_template('entry.html')
+
+@app.route('/serv')
+def serv():
+	check_uid()
+
+	sid = request.args.get('sid')
+	if sid == None:
+		return redirect(url_for('index'))
+	sid = int(sid)
+	if not 0 <= sid < len(services):
+		return redirect(url_for('index'))
+
+	if not session['login'][sid]:
+		return redirect(url_for('login', sid=sid))
+
+	if sid == 0:
+		msg = 'hi, ' + session['name'][sid]
+		return render_template('chat.html', msg=msg)
+	elif sid == 1:
+		msg = 'hi, ' + session['name'][sid]
+		return render_template('chat2.html', msg=msg)
+	else:
+		return redirect(url_for('index'))
+
+@app.route('/link')
+def link():
+	check_uid()
+
+	step = request.args.get('step')
+	step = int(step) if step else 0
+
+	return render_template('link.html', step=step)
 
 if __name__ == '__main__':
 	app.run()
