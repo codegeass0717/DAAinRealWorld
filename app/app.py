@@ -16,8 +16,9 @@ app.config['SESSION_TYPE'] = 'filesystem'
 
 vaild_groups = [('NTU', 'ntu.edu.tw'), ('NTUCSIE', 'csie.ntu.edu.tw')]
 services = [Service('ntu', 'service/ntu'), Service('ntucsie', 'service/ntucsie')]
+signers  = [Service('ntu_service', 'service/ntu_service', 1), Service('ntucsie_service', 'service/ntucsie_service', 1)]
 TMP_PATH = 'tmp'
-DEBUG = False
+DEBUG = True
 
 def random_str(n):
 	sample = string.ascii_letters + string.digits
@@ -74,6 +75,24 @@ def login():
 		session['login'] = True
 		print ' * Verification success'
 		return redirect(url_for('index'))
+
+@app.route('/group_verify' , methods=['GET','POST'])
+def group_verify():
+    check_uid()
+    msg1=""
+    if request.method == 'POST':
+        group = request.form['group']
+        if(group=='NTUSERVICE'):
+            gsid = 0
+        elif(group=='NTUCSIESERVICE'):
+            gsid = 1
+        # TODO : Error Handling
+        msg = request.form["msg"] + random_str(16)
+        file_name = 'Groupverify' + session['uid']
+        file_dst = os.path.join(TMP_PATH, file_name)
+        signers[gsid].verifier.sign(file_dst, None ,msg)
+        msg1 = "Signed Message is :" + msg
+    return render_template('group_verify.html',msg1=msg1)
 
 @app.route('/logout')
 def logout():
@@ -185,8 +204,8 @@ def join_group():
 @app.route('/download')
 def download():
 	check_uid()
-	if 'g_verify' not in session or not session['g_verify']:
-		return redirect(url_for('index'))
+	#if 'g_verify' not in session or not session['g_verify']:
+    #	return redirect(url_for('index'))
 
 	filename = request.args.get('file')
 	if filename == 'gpubkey':
@@ -198,6 +217,10 @@ def download():
 		# Response 404 if not found
 		key_name = 'KEY' + session['uid']
 		return send_from_directory('tmp', key_name, as_attachment=True, attachment_filename='member.tmpmemkey')
+	elif filename == 'group_verify':
+		# Response 404 if not found
+		file_name = 'Groupverify' + session['uid']
+		return send_from_directory('tmp', file_name, as_attachment=True, attachment_filename='Signature')
 	return redirect(url_for('index'))
 
 @app.route('/test')

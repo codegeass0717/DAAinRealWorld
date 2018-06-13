@@ -173,6 +173,7 @@ class sign1:
     Sew = 0
     See = 0
     Ser = 0
+    Sbsn = 0
     def __init__( self, pubKey = None, memKey=None, bsn=None, msg=None):
         if pubKey != None:
             bsnPower = bsnPow( bsn, pubKey.pGroup, pubKey.qGroup)
@@ -196,6 +197,7 @@ class sign1:
             Rr = number.getRandomInteger(hBit + 2*phiBit + hBit)
             Rew = number.getRandomInteger(2*eBit + nBit + hBit + 2*phiBit + 1)
             Rer = number.getRandomInteger(2*eBit + nBit + hBit + 2*phiBit + 1)
+            Rbsn = number.getRandomInteger( secretBit )
 
             T1Perp_1 = safePow(T1, Re, pubKey.RSAN)
             T1Perp_2 = safePow(pubKey.R, Rf, pubKey.RSAN)
@@ -252,6 +254,7 @@ class sign1:
             self.Sew = Rew + C1Int * w * memKey.e
             self.See = Ree + C1Int * (memKey.e**2)
             self.Ser = Rer + C1Int * memKey.e * r
+            self.Sbsn = Rbsn + C1Int * memKey.f
 
     def readfrom( self, fileName):
         f = open(fileName, "r")
@@ -268,6 +271,7 @@ class sign1:
         self.Sew = int(f.readline())
         self.See = int(f.readline())
         self.Ser = int(f.readline())
+        self.Sbsn = int(f.readline())
         f.close()
     def write( self, fileName):
         f = open(fileName, "w")
@@ -284,6 +288,7 @@ class sign1:
         writeline( f, self.Sew)
         writeline( f, self.See)
         writeline( f, self.Ser)
+        writeline( f, self.Sbsn)
         f.close()
     def verify( self, pubKey, bsn, msg):
         SePerp = self.Se + self.C1*(E)
@@ -294,6 +299,8 @@ class sign1:
         msgHash.update(msg)
         if( self.B != B):
             return False
+        
+        
 
         T1Head_1 = safePow( pubKey.Z, -1*self.C1, pubKey.RSAN)
         T1Head_2 = safePow( self.T1, SePerp, pubKey.RSAN)
@@ -368,7 +375,5 @@ def bsnPow( bsn, pGroup, qGroup):
     bsnHash = SHA256.new()
     bsnHash.update(bsn)
     bsnHashInt = int( bsnHash.hexdigest(), 16)
-    bsnPower = safePow( bsnHashInt, pGroup-1, pGroup)
-    qGroupInv = number.inverse( qGroup, pGroup-1)
-    bsnPower = safePow( bsnPower, qGroupInv, pGroup)
+    bsnPower = safePow( bsnPower, bsnHashInt, pGroup)
     return bsnPower
