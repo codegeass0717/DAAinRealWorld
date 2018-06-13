@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Join Group</title>
+	</head>
+	<body>
+		<h1>Join Group</h1>
+		<p>{{ msg }}</p>
+		<p>Basename: {{ bsn }}</p>
+		<p>
+			1. Download group public key
+			<a href="download?file=gpubkey">Here</a>
+		</p>
+		<p>2. Upload your JOIN REQUEST</p>
+		<form method="post" enctype="multipart/form-data">
+      <input type="file" name="join_req">
+      <input type="submit" value="Send">
+    </form>
+    <p>
+    	3. Download your temp private key
+    	<a href="download?file=tmpmemkey">Here</a>
+    </p>
+		<p><a href="/">Back</a></p>
+  </body>
+</html>
