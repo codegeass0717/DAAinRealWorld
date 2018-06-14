@@ -22,7 +22,7 @@ verifier = Member()
 
 valid_groups = [('NTU', 'ntu.edu.tw'), ('NTUCSIE', 'csie.ntu.edu.tw')]
 groups = [Group('ntu'), Group('ntucsie'), Group('ntu_service'), Group('ntucsie_service')]
-services = [Service('aaaa', 0), Service('bbbb', 0), Service('cccc', 0)]
+services = [Service('aaaa', 0), Service('bbbb', 0), Service('cccc', 1)]
 
 def generate_key(gid, join_dst, key_dst):
     global issuer, groups
@@ -59,18 +59,24 @@ def check_group(group, email):
         -1: group not found
         -2: incorrect suffix
     """
-    for i, (g, suf) in enumerate(valid_groups):
-        if group == g:
-            if email.endswith(suf):
-                return i
+    if group == 'NTU':
+        if email.endswith('ntu.edu.tw'):
+            return 0
+        else:
             return -2
-    return -1
+    elif group == 'NTUCSIE':
+        if email.endswith('csie.ntu.edu.tw'):
+            return 1
+        else:
+            return -2
+    else:
+        return -1
 
 def update(which, sid, value):
     # Deal with an unknown bug
-    logins = session[which]
-    logins[sid] = value
-    session[which] = logins
+    l = session[which]
+    l[sid] = value
+    session[which] = l
 
 @app.route('/')
 def index():
