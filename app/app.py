@@ -231,14 +231,23 @@ def logout():
 def download():
     check_uid()
 
+    # TODO: Use args
+    gid = session['gid']
     filename = request.args.get('file')
     if filename == 'group_verify':
         # Response 404 if not found
         sign_name = 'Groupverify' + session['uid']
         filename = 'Groupverify' + session['uid']
         return send_from_directory('tmp', sign_name, as_attachment=True, attachment_filename=filename)
-    gid = session['gid']
-    if filename == 'gpubkey':
+    elif filename == 'group_cert':
+        if gid == 1:
+            # TODO
+            path = 'groups/' + groups[gid].name
+            filename = 'cert'
+            return send_from_directory(path, filename, as_attachment=True, attachment_filename=filename)
+        else:
+            return 'error'
+    elif filename == 'gpubkey':
         path = 'groups/' + groups[gid].name
         filename = groups[gid].name + '.pubkey'
         return send_from_directory(path, filename, as_attachment=True, attachment_filename=filename)
