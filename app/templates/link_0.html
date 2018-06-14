@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Link</title>
+	</head>
+	<body>
+    <h1>Link pseudonyms</h1>
+    <p>{{ msg }}</p>
+    <form>
+      <select name='serv0'>
+        <option value="-1">Please choose a service</option>
+        {% for s in services %}
+          <option value='{{ s.sid }}'>{{ s.bsn }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="name0"><br>
+      <select name='serv1'>
+        <option value="-1">Please choose a service</option>
+        {% for s in services %}
+          <option value='{{ s.sid }}'>{{ s.bsn }}</option>
+        {% endfor %}
+      </select>
+      <input type="text" name="name1"><br>
+      <input type="submit" value="Send">
+    </form>
+    <p><a href="entry">Back</a></p>
+  </body>
+</html>

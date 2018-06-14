@@ -243,13 +243,18 @@ def download():
         return send_from_directory('tmp', key_name, as_attachment=True, attachment_filename=filename)
     return redirect(url_for('index'))
 
-@app.route('/test')
-def test():
-    return render_template('test.html')
-
 @app.route('/entry')
 def entry():
-    return render_template('entry.html')
+    check_uid()
+    
+    l = list()
+    for sid, s in enumerate(services):
+        d = dict()
+        d['bsn'] = s.bsn
+        d['status'] = session['login'][sid]
+        d['name'] = session['name'][sid]
+        l.append(d)
+    return render_template('entry.html', services=l)
 
 @app.route('/group_verify', methods=['GET', 'POST'])
 def group_verify():
@@ -309,14 +314,60 @@ def serv():
     else:
         return redirect(url_for('index'))
 
-@app.route('/link')
+@app.route('/link', methods=['GET', 'POST'])
 def link():
     check_uid()
 
-    step = request.args.get('step')
-    step = int(step) if step else 0
+    if request.method == 'GET':
+        s0, s1 = request.args.get('serv0'), request.args.get('serv1')
+        n0, n1 = request.args.get('name0'), request.args.get('name1')
+        s0 = int(s0) if s0 else -1
+        s1 = int(s1) if s1 else -1
+        print s0, s1
+        if 0 <= s0 < len(services) and 0 <= s1 < len(services) and s0 != s1 and n0 and n1:
+            bsn0, bsn1 = services[s0].bsn, services[s1].bsn
+            msg = 'LINK {} ON SERVICE {} TO {} on SERVICE {} '.format(n0, bsn0, n1, bsn1)
+            msg += random_str(16)
+            session['link'] = msg
+            return render_template('link_1.html', msg=msg, bsn0=bsn0, bsn1=bsn1)
+        else:
+            serv = list()
+            for i, s in enumerate(services):
+                d = dict()
+                d['sid'] = i
+                d['bsn'] = s.bsn
+                serv.append(d)
+            return render_template('link_0.html', services=serv)
 
-    return render_template('link.html', step=step)
+    elif request.method == 'POST':
+        if 'link' not in session:
+            return redirect(request.url)
+        if 'sign0' not in request.files or 'sign1' not in request.files:
+            return redirect(request.url)
+
+        sv0, sv1 = request.args.get('serv0'), request.args.get('serv1')
+        sv0 = int(sv0) if sv0 else -1
+        sv1 = int(sv1) if sv1 else -1
+        if not(0 <= sv0 < len(services) and 0 <= sv1 < len(services) and sv0 != sv1):
+            return redirect(url_for('link'))
+        s0, s1 = request.files['sign0'], request.files['sign1']
+        if not s0 or not s1:
+            return redirect(request.url)
+
+        s0_dst = os.path.join(TMP_PATH, 'S0' + session['uid'])
+        s1_dst = os.path.join(TMP_PATH, 'S1' + session['uid'])
+        s0.save(s0_dst)
+        s1.save(s1_dst)
+
+        ret0, n0 = verify_sign(sv0, s0_dst, session['link'])
+        ret1, n1 = verify_sign(sv1, s1_dst, session['link'])
+        if not ret0 or not ret1:
+            print ' * Link failed'
+            return redirect(request.url)
+
+        print ' * Link success'
+        update('name', sv1, session['name'][0])
+        return redirect(url_for('entry'))
 
 if __name__ == '__main__':
     app.run()

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Link</title>
+	</head>
+	<body>
+    <h1>Link pseudonyms</h1>
+    <p>Please sign: {{ msg }}</p>
+    <form method="post" enctype="multipart/form-data">
+      Sign 0 (based on {{ bsn0 }})<br>
+      <input type="file" name="sign0"><br>
+      Sign 1 (based on {{ bsn1 }})<br>
+      <input type="file" name="sign1"><br>
+      <input type="submit" value="Send">
+    </form>
+    <p><a href="link">Back</a></p>
+  </body>
+</html>
