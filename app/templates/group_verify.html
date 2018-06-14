@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Group Verify</title>
+		<title>Verify Chat Board</title>
 	</head>
-    <p>{{ msg1 }}</p>
 	<body>
-		<h1>Group Verify</h1>
-		<form method="post" enctype="application/x-www-form-urlencoded">
-			<select name='group'>
-				<option value='NTUSERVICE'>NTUSERVICE</option>
-				<option value='NTUCSIESERVICE'>NTUCSIESERVICE</option>
-			</select>
-      <input name="msg">
-      <input type="submit" value="Send Sign request">
-        <p><a href="/download?file=group_verify">Download Signature</a></p>
+		<h1>Verify Service</h1>
+		<p>You can verify whether you are talking to a service under right group or not at here.</p>
+        <p>{{ bsn }}</p>
+        <p>{{ gname }}</p>
+        <p>{{ signed_msg }}</p>
+    <form method="post" enctype="application/x-www-form-urlencoded">
+      <input type="text" name="msg">
+      <input type="submit" value="Send Challenge">
   	</form>
+        <p><a href="/download?file=group_verify">Download Signature</a></p>
+        <p><a href={{ url_for('login', sid=sid) }}>Login!</a></p>
   	<p><a href="/">Back</a></p>
   </body>
 </html>

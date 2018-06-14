@@ -9,6 +9,7 @@ class Group:
 		self.path = 'groups/' + name
 		self.pubKeyFile = os.path.join(self.path, name + '.pubkey')
 		self.prvKeyFile = os.path.join(self.path, name + '.prvkey')
+		self.memKeyFile = os.path.join(self.path, name + '.memkey')
 		self.bsnFile = os.path.join(self.path, 'bsn')
 		with open(self.bsnFile, 'r') as f:
 			self.bsnStr = f.read()
