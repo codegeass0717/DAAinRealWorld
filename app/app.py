@@ -15,7 +15,7 @@ app.secret_key = 'super secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
 
 TMP_PATH = 'tmp'
-DEBUG = True
+DEBUG = False
 
 issuer = Issuer()
 verifier = Member()
@@ -51,6 +51,8 @@ def check_uid():
         session['name'] = [''] * len(services)
     # DEBUG
     print session
+    #session['login'] = [True] * len(services)
+    #session['name'] = ['122000000342342342343', '345123123123123123', '4560000000000099999']
 
 def check_group(group, email):
     """
@@ -237,16 +239,12 @@ def download():
     if filename == 'group_verify':
         # Response 404 if not found
         sign_name = 'Groupverify' + session['uid']
-        filename = 'Groupverify' + session['uid']
+        filename = 'Groupverify'# + session['uid']
         return send_from_directory('tmp', sign_name, as_attachment=True, attachment_filename=filename)
     elif filename == 'group_cert':
-        if gid == 1:
-            # TODO
-            path = 'groups/' + groups[gid].name
-            filename = 'cert'
-            return send_from_directory(path, filename, as_attachment=True, attachment_filename=filename)
-        else:
-            return 'error'
+        path = 'groups/' + groups[gid].name
+        filename = 'cert'
+        return send_from_directory(path, filename, as_attachment=True, attachment_filename=filename)
     elif filename == 'gpubkey':
         path = 'groups/' + groups[gid].name
         filename = groups[gid].name + '.pubkey'
@@ -304,7 +302,7 @@ def group_verify():
         verifier.sign(file_dst, None ,msg)
     signed_msg = "Signed Message is :" + msg
 
-    return render_template('group_verify.html', signed_msg = signed_msg, bsn = bsn, gname = gname, sid = sid)
+    return render_template('group_verify.html', signed_msg = msg, bsn = bsn_tmp, gname = gname, sid = sid)
 
 @app.route('/serv')
 def serv():
@@ -322,10 +320,14 @@ def serv():
 
     if sid == 0 or sid == 1:
         msg = 'hi, ' + hex(int(session['name'][sid], 10))[2:8] + ". You are a member of NTU."
-        return render_template('ntu_chat.html', msg=msg)
+        name = 'NTU Chat Board'
+        if sid == 1:
+            name += ' 2'
+        return render_template('ntu_chat.html', msg=msg, name=name, sid=sid)
     elif sid == 2:
         msg = 'hi, ' + hex(int(session['name'][sid], 10))[2:8] + ". You are a member of NTU CSIE."
-        return render_template('ntucsie_chat.html', msg=msg)
+        name = 'NTUCSIE Chat Board'
+        return render_template('ntu_chat.html', msg=msg, name=name, sid=sid)
     else:
         return redirect(url_for('index'))
 
@@ -347,10 +349,12 @@ def link():
             return render_template('link_1.html', msg=msg, bsn0=bsn0, bsn1=bsn1)
         else:
             serv = list()
-            for i, s in enumerate(services):
+            for sid, s in enumerate(services):
                 d = dict()
-                d['sid'] = i
+                d['sid'] = sid
                 d['bsn'] = s.bsn
+                d['status'] = session['login'][sid]
+                d['name'] = session['name'][sid]
                 serv.append(d)
             return render_template('link_0.html', services=serv)
 
@@ -383,6 +387,10 @@ def link():
         print ' * Link success'
         update('name', sv1, session['name'][0])
         return redirect(url_for('entry'))
+
+@app.route('/test')
+def test():
+    return render_template('test.html')
 
 if __name__ == '__main__':
     app.run()

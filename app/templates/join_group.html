@@ -1,29 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-	<head>
-		<title>Join Group</title>
-	</head>
-	<body>
-		<h1>Join Group</h1>
-		<p>{{ msg }}</p>
-		<p>Basename: {{ bsn }}</p>
-		<p>
-			0. Download group ceritficate
-			<a href="download?file=group_cert">Here</a>
-		</p>
-		<p>
-			1. Download group public key
-			<a href="download?file=gpubkey">Here</a>
-		</p>
-		<p>2. Upload your JOIN REQUEST</p>
-		<form method="post" enctype="multipart/form-data">
-      <input type="file" name="join_req">
-      <input type="submit" value="Send">
-    </form>
-    <p>
-    	3. Download your temp private key
-    	<a href="download?file=tmpmemkey">Here</a>
-    </p>
-		<p><a href="/">Back</a></p>
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <link href="static/pricing.css" rel="stylesheet">
+    <title>DAA X NTU</title>
+  </head>
+
+  <body>
+
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
+      <h5 class="my-0 mr-md-auto font-weight-normal">DAA X NTU</h5>
+      <nav class="my-2 my-md-0 mr-md-3">
+        <a class="p-2 text-dark" href="/">Home</a>
+        <a class="p-2 text-dark" href="entry">Status</a>
+      </nav>
+      <a class="btn btn-outline-primary" href="send_email">Sign up</a>
+    </div>
+
+    <div class="container text-center">
+    	<h1 class="display-4">Join Group</h1>
+			<p class="lead">{{ msg }}</p>
+			<p class="lead">Basename: {{ bsn }}</p>
+
+			<div class="row">
+				<div class="col"></div>
+				<div class="col-4 text-center">
+					<p class="lead">0. Download group ceritficate</p>
+				</div>
+				<div class="col-2"></div>
+				<div class="col-2">
+					<a href="download?file=group_cert" class="btn btn-m btn-primary btn-block">Here</a>
+				</div>
+				<div class="col-2"></div>
+				<div class="col"></div>
+			</div>
+
+			<div class="row">
+				<div class="col"></div>
+				<div class="col-4 text-center">
+					<p class="lead">1. Download group public key</p>
+				</div>
+				<div class="col-2"></div>
+				<div class="col-2">
+					<a href="download?file=gpubkey" class="btn btn-primary btn-block">Here</a>
+				</div>
+				<div class="col-2"></div>
+				<div class="col"></div>
+			</div>
+
+			<div class="row">
+				<div class="col"></div>
+				<div class="col-4 text-center">
+					<p class="lead">2. Upload your JOIN REQUEST</p>
+				</div>
+				<div class="col-6">
+					<form method="post" enctype="multipart/form-data">
+      			<input type="file" name="join_req">
+      			<button type="submit" class="btn btn-outline-secondary">Send</button>
+		    	</form>
+				</div>
+	    	<div class="col"></div>
+			</div>
+
+			<div class="row">
+				<div class="col"></div>
+				<div class="col-4 text-center">
+					<p class="lead">3. Download your temp private key</p>
+				</div>
+				<div class="col-2"></div>
+				<div class="col-2">
+					<a href="download?file=tmpmemkey" class="btn btn-m btn-primary btn-block">Here</a>
+				</div>
+				<div class="col-2"></div>
+				<div class="col"></div>
+			</div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T" crossorigin="anonymous"></script>
+    <script>
+      Holder.addTheme('thumb', {
+        bg: '#55595c',
+        fg: '#eceeef',
+        text: 'Thumbnail'
+      });
+    </script>
   </body>
 </html>

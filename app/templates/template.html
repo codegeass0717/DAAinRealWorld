@@ -25,56 +25,6 @@
     </div>
 
     <div class="container text-center">
-      <h1 class="display-4">Link pseudonyms</h1>
-      <p class="lead">{{ msg }}</p>
-
-      <div class="container text-center">
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th class="lead">Service</th>
-              <th class="lead">Login</th>
-              <th class="lead">Pseudonym</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for s in services %}
-              <tr>
-                <th class="lead">{{ s.bsn }}</th>
-                <th class="lead">{{ s.status }}</th>
-                <th class="lead">{{ s.name }}</th>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      
-      <form>
-        <select name='serv0'>
-          <option value="-1">Choose a service...</option>
-          {% for s in services %}
-            <option value='{{ s.sid }}'>{{ s.bsn }}</option>
-          {% endfor %}
-        </select>
-        <input type="text" name="name0"><br>
-        <br>
-        <select name='serv1'>
-          <option value="-1">Choose a service...</option>
-          {% for s in services %}
-            <option value='{{ s.sid }}'>{{ s.bsn }}</option>
-          {% endfor %}
-        </select>
-        <input type="text" name="name1"><br>
-        <br>
-
-        <div class="row">
-          <div class="col"></div>
-          <div class="col">
-            <button type="submit" class="btn btn-primary btn-block">Next</button>
-          </div>
-          <div class="col"></div>
-        </div>
-      </form>
     </div>
 
     <!-- Optional JavaScript -->
